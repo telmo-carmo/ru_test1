@@ -33,9 +33,10 @@ use chrono::{DateTime, Local};
 
 use endbasic_core::{
     ast::Value,
-    exec::{Machine, StopReason},
+    exec::StopReason,
     syms::Symbol,
 };
+//use endbasic_core::exec::Machine;
 
 use futures_lite::future::block_on;
 use std::fs::File;
@@ -66,7 +67,7 @@ fn main() {
     };
     std::env::set_var("RUST_LOG", "ru_test1"); // log ALL
     env_logger::init();
-    const BAS_FILE: &str = "fibo.bas";
+
     log::info!("Reading BASIC file: {}", bas_file);
     let mut file = File::open(bas_file).expect("Unable to open file");
     let mut content = String::new();
