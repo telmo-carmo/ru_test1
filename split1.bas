@@ -6,7 +6,7 @@ delimiter$ = ";"
 DIM parts(4)  AS STRING '  Define an array to hold the parts, start idx is 0
 count = 0
 start = 0
-FOR i = 1 TO LEN(my_string$)
+FOR i = 1 TO LEN(my_string$)-1
     IF MID$(my_string$, i, 1) = delimiter$ THEN
         parts(count) = MID$(my_string$, start, i - start)
         count = count + 1
