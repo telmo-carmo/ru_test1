@@ -27,8 +27,8 @@ IF (a AND &b_0001) <> 0 THEN PRINT "a has the right-most bit set"
 
 use std::time::{SystemTime,Instant};
 use chrono::{DateTime, Local};
-//use std::cell::RefCell;
-//use std::rc::Rc;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 
 use endbasic_core::{
@@ -58,6 +58,59 @@ use std::io::Read;
 //     }
 // }
 
+use async_trait::async_trait;
+use endbasic_core::syms::{CallResult, Callable, CallableMetadata, CallableMetadataBuilder};
+use endbasic_core::ast::ExprType;
+use endbasic_core::exec::{ Machine, Scope};
+use endbasic_core::compiler::{ArgSepSyntax, RequiredValueSyntax, SingularArgSyntax};
+use std::borrow::Cow;
+
+type Lights = i32;
+
+
+// The `SWITCH_LIGHT` command.
+struct SwitchLightFn {
+    metadata: CallableMetadata,
+    lights: Rc<RefCell<Lights>>,
+}
+
+impl SwitchLightFn {
+    /// Creates a new command that modifies the `lights` state.
+    pub fn new(lights: Rc<RefCell<Lights>>) -> Rc<Self> {
+        Rc::from(Self {
+            metadata: CallableMetadataBuilder::new("SWITCH_LIGHT")
+                .with_return_type(ExprType::Integer)
+                .with_syntax(&[(
+                    &[SingularArgSyntax::RequiredValue(
+                        RequiredValueSyntax { name: Cow::Borrowed("id"), vtype: ExprType::Text },
+                        ArgSepSyntax::End,
+                    )],
+                    None,
+                )])
+                .with_category("Demonstration")
+                .with_description("Len of id param.")
+                .build(),
+            lights,
+        })
+    }
+}
+
+#[async_trait(?Send)]
+impl Callable for SwitchLightFn{
+    fn metadata(&self) -> &CallableMetadata {
+        &self.metadata
+    }
+
+    async fn exec(&self, mut scope: Scope<'_>, _machine: &mut Machine) -> CallResult {
+        debug_assert_eq!(1, scope.nargs());
+        let (si, _ipos) = scope.pop_string_with_pos();
+        let v = *self.lights.borrow();
+        println!(">>> lights = {}",v);
+        scope.return_integer(si.len() as i32)
+    }
+}
+
+
 fn main() {
     let vf = false;
 
@@ -86,10 +139,13 @@ fn main() {
     //builder = builder.with_console( Rc::from(RefCell::from(endbasic_std::console::TrivialConsole::default())) );
     let mut machine = builder.build().expect("failed to create interpreter");
 
-    use endbasic_core::ast::ExprType;
+   // use endbasic_core::ast::ExprType;
     let var_ref = endbasic_core::ast::VarRef::new("MyName", Some(ExprType::Text));
     let v1 = String::from("Banana");
     let _ = machine.get_mut_symbols().set_var(&var_ref, Value::Text(v1));
+
+    let lights = Rc::from(RefCell::from(123));
+    machine.add_callable(SwitchLightFn::new(lights.clone()));
 
     // Execute the input script.  All this script can do is modify the state of the machine itself.
     // In other words: the script can set variables in the machine's environment, but that's it.
