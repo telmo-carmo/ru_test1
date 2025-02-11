@@ -6,7 +6,7 @@ RANDOMIZE 10
 PRINT "The random number is:"; INT(RND() * 100.0)
 PRINT "Var MyName = " ; MyName
 
-PRINT "Lights = " ; SWITCH_LIGHT("ola123")
+PRINT "Do cmd = " ; DO_CMD("ola Mundo novo!")
 res1 = 1
-END 33
+'END 33
 

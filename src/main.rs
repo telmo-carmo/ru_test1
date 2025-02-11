@@ -27,8 +27,7 @@ IF (a AND &b_0001) <> 0 THEN PRINT "a has the right-most bit set"
 
 use std::time::{SystemTime,Instant};
 use chrono::{DateTime, Local};
-use std::cell::RefCell;
-use std::rc::Rc;
+
 
 
 use endbasic_core::{
@@ -64,39 +63,37 @@ use endbasic_core::ast::ExprType;
 use endbasic_core::exec::{ Machine, Scope};
 use endbasic_core::compiler::{ArgSepSyntax, RequiredValueSyntax, SingularArgSyntax};
 use std::borrow::Cow;
-
-type Lights = i32;
+//use std::cell::RefCell;
+use std::rc::Rc;
 
 
 // The `SWITCH_LIGHT` command.
-struct SwitchLightFn {
+struct DoCmdFn {
     metadata: CallableMetadata,
-    lights: Rc<RefCell<Lights>>,
 }
 
-impl SwitchLightFn {
+impl DoCmdFn {
     /// Creates a new command that modifies the `lights` state.
-    pub fn new(lights: Rc<RefCell<Lights>>) -> Rc<Self> {
+    pub fn new() -> Rc<Self> {
         Rc::from(Self {
-            metadata: CallableMetadataBuilder::new("SWITCH_LIGHT")
-                .with_return_type(ExprType::Integer)
+            metadata: CallableMetadataBuilder::new("DO_CMD")
+                .with_return_type(ExprType::Text)
                 .with_syntax(&[(
                     &[SingularArgSyntax::RequiredValue(
-                        RequiredValueSyntax { name: Cow::Borrowed("id"), vtype: ExprType::Text },
+                        RequiredValueSyntax { name: Cow::Borrowed("expr"), vtype: ExprType::Text },
                         ArgSepSyntax::End,
                     )],
                     None,
                 )])
                 .with_category("Demonstration")
-                .with_description("Len of id param.")
+                .with_description("Runs a CMD with arg expr")
                 .build(),
-            lights,
         })
     }
 }
 
 #[async_trait(?Send)]
-impl Callable for SwitchLightFn{
+impl Callable for DoCmdFn{
     fn metadata(&self) -> &CallableMetadata {
         &self.metadata
     }
@@ -104,9 +101,8 @@ impl Callable for SwitchLightFn{
     async fn exec(&self, mut scope: Scope<'_>, _machine: &mut Machine) -> CallResult {
         debug_assert_eq!(1, scope.nargs());
         let (si, _ipos) = scope.pop_string_with_pos();
-        let v = *self.lights.borrow();
-        println!(">>> lights = {}",v);
-        scope.return_integer(si.len() as i32)
+        log::warn!("in DO_CMD = {}",&si);
+        scope.return_string(si.to_uppercase())
     }
 }
 
@@ -144,8 +140,7 @@ fn main() {
     let v1 = String::from("Banana");
     let _ = machine.get_mut_symbols().set_var(&var_ref, Value::Text(v1));
 
-    let lights = Rc::from(RefCell::from(123));
-    machine.add_callable(SwitchLightFn::new(lights.clone()));
+    machine.add_callable(DoCmdFn::new());
 
     // Execute the input script.  All this script can do is modify the state of the machine itself.
     // In other words: the script can set variables in the machine's environment, but that's it.
