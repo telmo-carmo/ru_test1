@@ -59,6 +59,8 @@ use std::io::Read;
 // }
 
 fn main() {
+    let vf = false;
+
     let args: Vec<String> = std::env::args().collect();
     let bas_file = if args.len() > 1 {
         &args[1]
@@ -73,7 +75,9 @@ fn main() {
     let mut content = String::new();
     file.read_to_string(&mut content).expect("Unable to read file");
     let mut input = content.as_bytes();
-    println!("code:\n{}\n----------------------------",content);
+    if vf {
+        println!("code:\n{}\n----------------------------",content);
+    }
 
     let tnow = Instant::now();
     //let mut machine = Machine::default();
