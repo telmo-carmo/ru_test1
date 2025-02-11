@@ -86,7 +86,12 @@ fn main() {
     //builder = builder.with_console( Rc::from(RefCell::from(endbasic_std::console::TrivialConsole::default())) );
     let mut machine = builder.build().expect("failed to create interpreter");
 
-    // Execute the sample script.  All this script can do is modify the state of the machine itself.
+    use endbasic_core::ast::ExprType;
+    let var_ref = endbasic_core::ast::VarRef::new("MyName", Some(ExprType::Text));
+    let v1 = String::from("Banana");
+    let _ = machine.get_mut_symbols().set_var(&var_ref, Value::Text(v1));
+
+    // Execute the input script.  All this script can do is modify the state of the machine itself.
     // In other words: the script can set variables in the machine's environment, but that's it.
     loop {
         match block_on(machine.exec(&mut input)).expect("Execution error") {
