@@ -9,4 +9,3 @@ PRINT "Var MyName = " ; MyName
 PRINT "Do cmd = " ; DO_CMD("ola Mundo novo!")
 res1 = 1
 'END 33
-
