@@ -35,7 +35,6 @@ use endbasic_core::{
     exec::StopReason,
     syms::Symbol,
 };
-//use endbasic_core::exec::Machine;
 
 use futures_lite::future::block_on;
 use std::fs::File;
@@ -67,7 +66,7 @@ use std::borrow::Cow;
 use std::rc::Rc;
 
 
-// The `SWITCH_LIGHT` command.
+// The `DO_CMD` command.
 struct DoCmdFn {
     metadata: CallableMetadata,
 }
